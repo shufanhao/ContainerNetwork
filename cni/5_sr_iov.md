@@ -10,17 +10,13 @@ SR-IOV（Single Root I/O Virtualization）是一个将PCIe共享给虚拟机的�
 - PF (Physical Function)： 包含完整的PCIe功能，包括SR-IOV的扩张能力，该功能用于SR-IOV的配置和管理。
 - VF (Virtual Function)： 包含轻量级的PCIe功能。每一个VF有它自己独享的PCI配置区域，并且可能与其他VF共享着同一个物理资源
 
-![图片](http://agroup-bos.cdn.bcebos.com/8dd664354ed0938258ded6d81cd20410314aac85)
-![图片](http://agroup-bos.cdn.bcebos.com/ea6668fb731f3953ce38326faed1b639d3227b30)
 
 ## 如何配置
 ### BIOS 中开启 SRIOV 支持
 BROADCOM 网卡参考这篇文档 http://kms2.h3c.com/View.aspx?id=59149
-Mellanox 网卡参考这篇文档 http://wiki.baidu.com/pages/viewpage.action?pageId=528366330
-还有这篇文档 http://wiki.baidu.com/pages/viewpage.action?pageId=686808854
 
 ### iommu
-iommu 是否需要开启待确认，可能会有性能损失 http://wiki.baidu.com/pages/viewpage.action?pageId=526607327
+iommu 是否需要开启待确认，可能会有性能损失
 
 ### 驱动
 加载驱动，驱动 options 可以配置最大 VF 数量。之后可以通过 ` lspci -nn | grep Ethernet ` 看到 VF 了。
@@ -44,26 +40,21 @@ iommu 未开启，待确认是否必须
 物理网卡作为 VF 的 master 设备，VF 是基于物理网卡的支持才可以创建出来的。
 
 通过如下命令查看 PCI 网络设备
-![PCI](http://agroup-bos.cdn.bcebos.com/1eab0fde71b00c3c87bfadf9859f16ee3621a87c)
 
 物理网卡（PF）为第一行，PCI ID 为 1a:00:0
 通过 PCI ID 查看网卡
-![图片](http://agroup-bos.cdn.bcebos.com/20047d08929f459633d150001140f9794f88fa5d)
 
-![图片](http://agroup-bos.cdn.bcebos.com/88e2730f1ef28d8ab60964d2bbd8c1e4d47d9325)
 
 
 ### 虚拟网卡（VF）
 查看 PF 支持的 VF 数量以及创建出来的 VF 数量
 
-![图片](http://agroup-bos.cdn.bcebos.com/b32bb5772938ec8ce1638ab6dace54fb4da0e457)
 
 totalvfs 为 PF 支持的总的 vf 数量，numvfs 为已经创建出来的 vf 数量。
 可以看到已经分配了 1 个 vf，上面的 ` lspci -nn | grep Ethernet ` 命令的返回结果可以看到创建的 VF 网卡
 
 每创建一个 VF，就会在 ` /sys/class/net/<PF-name>/device/ ` 中创建一个目录 virtfn** 记录该 VF 网卡
 
-![图片](http://agroup-bos.cdn.bcebos.com/0270828f955992a6023bd75488d4714958ae96eb)
 
 同时，host network namespace 中也可以通过 ` ip link ` 看到该网卡
 
@@ -115,8 +106,7 @@ calico + sriov 方案
 #### kubernetes worker 节点配置
 
 - 将 sriov 二进制文件上传到 worker 节点 /opt/cni/bin 目录中
-- /etc/cni/net.d/ 目录添加 sriov 配置文件，示例如下
-![sriov](http://agroup-bos.cdn.bcebos.com/05766b6705efbf7a8b003e44de2b7fce7ad337d5)
+- /etc/cni/net.d/ 目录添加 sriov 配置文.
 
 #### pod yaml
 ```yaml
@@ -149,7 +139,7 @@ spec:
         - name: nginx
           image: hub.baidubce.com/cce/nginx-alpine-go:latest
       nodeSelector:
-        kubernetes.io/hostname: tj-unicom-edgeworker05.baidu.com
+        kubernetes.io/hostname: test
 ```
 
 #### pod 网络情况
@@ -157,22 +147,9 @@ spec:
 eth0 为 calico 网卡，eth1 为 sriov 网卡
 路由表中 10.96.0.0/12 为 clusterIP 网段，通过 calico 的 veth 网卡出去
 
-![网卡](http://agroup-bos.cdn.bcebos.com/f51009448fb0793e8d07b8113e2a44b779ca3a82)
-![路由](http://agroup-bos.cdn.bcebos.com/bfcb64b0ba0d9faa226095e3647ffdc81c2d45de)
-
-
-## TODO
-
-- [ ] 系统和网卡配置需要与单机同学确认
-- [ ] 打包 sriov 二进制到容器中方便部署
-
 ## 参考文档
 
-https://software.intel.com/en-us/articles/single-root-inputoutput-virtualization-sr-iov-with-linux-containers
-https://blog.scottlowe.org/2009/12/02/what-is-sr-iov/
-http://kms2.h3c.com/View.aspx?id=59149
-http://wiki.baidu.com/pages/viewpage.action?pageId=173950169
-http://wiki.baidu.com/pages/viewpage.action?pageId=686808854
-http://wiki.baidu.com/pages/viewpage.action?pageId=526607327
-http://wiki.baidu.com/pages/viewpage.action?pageId=528366330
-https://sdn.feisky.xyz/wang-luo-ji-chu/index-1/sr-iov
+* https://software.intel.com/en-us/articles/single-root-inputoutput-virtualization-sr-iov-with-linux-containers
+* https://blog.scottlowe.org/2009/12/02/what-is-sr-iov/
+* http://kms2.h3c.com/View.aspx?id=59149
+* https://sdn.feisky.xyz/wang-luo-ji-chu/index-1/sr-iov

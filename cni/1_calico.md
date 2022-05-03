@@ -606,7 +606,7 @@ spec:
       annotations:
         "cni.projectcalico.org/ipAddrs": "[\"150.138.245.214\"]"
     spec:
-      nodeName: jnlxct-edge-test01.jnlxct.baidu.com
+      nodeName: test
       containers:
       - name: busybox01
         image: busybox:1.28
